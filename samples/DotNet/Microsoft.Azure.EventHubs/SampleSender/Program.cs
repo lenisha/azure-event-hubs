@@ -4,18 +4,28 @@
 namespace SampleSender
 {
     using System;
+    using System.IO;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.Azure.EventHubs;
+    using Microsoft.Extensions.Configuration;
 
     public class Program
     {
         private static EventHubClient eventHubClient;
-        private const string EventHubConnectionString = "Event Hubs namespace connection string";
-        private const string EventHubName = "event hub name";
+        private static string EventHubConnectionString;
+        private static string EventHubName;
 
         public static void Main(string[] args)
         {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+            IConfigurationRoot configuration = builder.Build();
+            EventHubConnectionString = configuration["EventHub:ConnectionString"];
+            EventHubName = configuration["EventHub:Name"];
+
             MainAsync(args).GetAwaiter().GetResult();
         }
 
@@ -29,6 +39,7 @@ namespace SampleSender
                 EntityPath = EventHubName
             };
 
+            Console.WriteLine($"Connecting to {EventHubConnectionString}");
             eventHubClient = EventHubClient.CreateFromConnectionString(connectionStringBuilder.ToString());
 
             await SendMessagesToEventHub(100);

@@ -4,32 +4,49 @@
 namespace SampleEphReceiver
 {
     using System;
+    using System.IO;
     using System.Threading.Tasks;
     using Microsoft.Azure.EventHubs;
     using Microsoft.Azure.EventHubs.Processor;
+    using Microsoft.Extensions.Configuration;
 
     public class Program
     {
-        private const string EventHubConnectionString = "Event Hubs connection string";
-        private const string EventHubName = "event hub name";
-        private const string StorageContainerName = "Storage account container name";
-        private const string StorageAccountName = "Storage account name";
-        private const string StorageAccountKey = "Storage account key";
+        private static string EventHubConnectionString;
+        private static string EventHubName;
+        private static string EventHubConsumerGroupName;
+        private static string StorageContainerName ;
+        private static string StorageAccountName;
+        private static string StorageAccountKey;
 
-        private static readonly string StorageConnectionString = string.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", StorageAccountName, StorageAccountKey);
+        private static string StorageConnectionString;
 
         public static void Main(string[] args)
         {
-            MainAsync(args).GetAwaiter().GetResult();
+
+            var builder = new ConfigurationBuilder()
+               .SetBasePath(Directory.GetCurrentDirectory())
+               .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+            IConfigurationRoot configuration = builder.Build();
+            EventHubConnectionString = configuration["EventHub:ConnectionString"];
+            EventHubName = configuration["EventHub:Name"];
+            EventHubConsumerGroupName = configuration["EventHub:ConsumerGroup"];
+            StorageContainerName = configuration["StorageAccount:StorageContainerName"];
+            StorageAccountName = configuration["StorageAccount:StorageAccountName"];
+            StorageAccountKey = configuration["StorageAccount:StorageAccountKey"];
+            StorageConnectionString = string.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", StorageAccountName, StorageAccountKey);
+
+            MainAsync().GetAwaiter().GetResult();
         }
 
-        private static async Task MainAsync(string[] args)
+        private static async Task MainAsync()
         {
             Console.WriteLine("Registering EventProcessor...");
 
             var eventProcessorHost = new EventProcessorHost(
                 EventHubName,
-                PartitionReceiver.DefaultConsumerGroupName,
+                EventHubConsumerGroupName,
                 EventHubConnectionString,
                 StorageConnectionString,
                 StorageContainerName);

@@ -15,6 +15,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.EventHubs.Processor" Version="1.0.3" />
     <PackageReference Include="Microsoft.Azure.EventHubs" Version="1.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
